@@ -1,0 +1,32 @@
+1. Original Dataset Source (Kaggle)
+    Title : New Plant Diseases Dataset
+
+    Provided by :   Vipoooool
+
+    Link :  https://www.kaggle.com/datasets/vipoooool/new-plant-diseases-dataset
+
+    Description:    This dataset contains RGB images of healthy and diseased crop leaves. It is categorized into 38 classes and is commonly used for plant disease detection using deep learning. The dataset is structured into training, validation, and test sets.
+
+2. Google Drive Links for Preprocessed ZIP Files
+    Preprocessed and compressed versions of the dataset are hosted on Google Drive for easy access and faster setup.
+
+    Test Dataset :   https://drive.google.com/uc?id=1thjoIqHc8XHuNGMj7aMzEMGgwz8SoT7S
+
+    Train Dataset :  https://drive.google.com/uc?id=1_nnrSmZNUYfll_C9Q3zxdmh1bEymXgpq
+
+    Validation Dataset : https://drive.google.com/uc?id=1YHD9AQ4mcADyeQU6ucqDApVTuI5niRbd
+
+
+
+Steps to Use Dataset in Google Colab :
+
+    ** Note: The following steps are implemented in both train_plant_disease.ipynb and test_plant_disease.ipynb **
+
+    1. Mount Google Drive
+    2. Import Required Modules
+    3. Set Base Paths
+        i. Path in Google Drive where the .zip files are stored
+        ii. Local extraction folder in Colab
+    4. Specify ZIP Files
+    5. Extract ZIP Files
+    6. Set Dataset Folder Paths
