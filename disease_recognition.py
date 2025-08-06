@@ -7,10 +7,13 @@ from data_dict import get_disease_details
 from deep_translator import GoogleTranslator
 import pandas as pd
 from datetime import datetime
+from io import BytesIO
+import os
+from PIL import Image
 
 # Load custom CSS
-with open("styles.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# with open("styles.css") as f:
+#     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # OpenAI client
 client = OpenAI(api_key=st.secrets["api_key"])
@@ -55,13 +58,28 @@ def get_disease_info(disease_name):
     except Exception as e:
         return f"Error retrieving info: {e}"
 
+# Load the model only once for speed
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model(MODEL_PATH)
+
 def model_prediction(test_image):
-    """Run the model on uploaded image and return probabilities."""
-    model = tf.keras.models.load_model(MODEL_PATH)
-    image = tf.keras.preprocessing.image.load_img(test_image, target_size=(128, 128))
+    """
+    Run the model on an uploaded image or a camera image and return probabilities.
+    Accepts file-like objects from st.file_uploader or st.camera_input.
+    """
+    model = load_model()
+
+    # Handle Streamlit's UploadedFile or Camera image (both are file-like objects)
+    if hasattr(test_image, "read"):  
+        image_data = BytesIO(test_image.read())  # Convert to in-memory file
+    else:
+        image_data = test_image  # Assume it's already a path or BytesIO
+
+    image = tf.keras.preprocessing.image.load_img(image_data, target_size=(128, 128))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
-    input_arr = np.array([input_arr])
-    predictions = model.predict(input_arr)[0]  # Single image
+    input_arr = np.expand_dims(input_arr, axis=0)  # Add batch dimension
+    predictions = model.predict(input_arr)[0]
     return predictions
 
 def translate_text(text, lang_code):
@@ -73,23 +91,46 @@ def translate_text(text, lang_code):
 
 # ---------------- Main Function ----------------
 def disease_recognition():
-    st.header("Disease Recognition")
 
-    test_image = st.file_uploader("Choose an Image:", type=["jpg", "jpeg", "png"])
+    st.header("🌿 Disease Recognition")
+
+    # Choose input method
+    option = st.radio("Select Image Source:", ["Upload Image", "Use Camera"])
+
+    test_image = None
+    if option == "Upload Image":
+        test_image = st.file_uploader("Choose an Image:", type=["jpg", "jpeg", "png"])
+    elif option == "Use Camera":
+        test_image = st.camera_input("Take a picture")
+
+    # if st.button("Show Image"):
+    #     if test_image is None:
+    #         st.warning("#### Please Upload or Capture an Image")
+    #         st.stop()
+    #     if "leaf" not in test_image.name.lower():
+    #         st.error("#### Upload leaf image only")
+    #         st.stop()
+    #     st.image(test_image, use_container_width=True)
 
     if st.button("Show Image"):
         if test_image is None:
-            st.warning("#### Please Upload an Image")
+            st.warning("#### Please Upload or Capture an Image")
             st.stop()
-        if "leaf" not in test_image.name.lower():
-            st.error("#### Upload leaf image only")
-            st.stop()
+
+        # Check if it's from file uploader
+        if option == "Upload Image":
+            if "leaf" not in test_image.name.lower():
+                st.error("#### Upload leaf image only")
+                st.stop()
+
+        # Show the image for both upload and camera
         st.image(test_image, use_container_width=True)
 
     if st.button("Predict"):
         if test_image is None:
-            st.error("Please upload an image first.")
+            st.error("Please upload or capture an image first.")
             st.stop()
+ 
 
         predictions = model_prediction(test_image)
 
@@ -143,20 +184,51 @@ def disease_recognition():
                         accuracy="N/A")
 
     # Always show results if available
+
+    TRAIN_DATASET_PATH = r"C:\Users\karthik\OneDrive\Desktop\3-1 Project\Deep Leaf Project\train"
+
     if "details_list" in st.session_state and st.session_state.details_list:
         for idx, item in enumerate(st.session_state.details_list):
             if len(item) == 6:
                 disease, plant, symptoms, causes, remedies, prob = item
-            else:  # old data without probability
+            else:
                 disease, plant, symptoms, causes, remedies = item
                 prob = 0
 
             st.success(f"Prediction {idx+1}: **{disease}** ({prob:.2f}%)")
+
+            # Show 3 training images related to the disease
+            disease_folder = os.path.join(TRAIN_DATASET_PATH, disease)
+            if os.path.exists(disease_folder):
+                sample_imgs = os.listdir(disease_folder)[:3]  # Pick first 3 images
+                cols = st.columns(len(sample_imgs))
+                for col, img_file in zip(cols, sample_imgs):
+                    img_path = os.path.join(disease_folder, img_file)
+                    col.image(Image.open(img_path), caption=f"{disease} example", use_container_width=True)
+            else:
+                st.info(f"No images found in training dataset for {disease}.")
+
+            # Show disease details
             st.markdown("### 🧠 Disease Info (English)")
             st.write(f"**Plant Affected:** {plant}")
             st.write(f"**Symptoms:** {symptoms}")
             st.write(f"**Causes:** {causes}")
             st.write(f"**Remedies:** {remedies}")
+
+    # if "details_list" in st.session_state and st.session_state.details_list:
+    #     for idx, item in enumerate(st.session_state.details_list):
+    #         if len(item) == 6:
+    #             disease, plant, symptoms, causes, remedies, prob = item
+    #         else:  # old data without probability
+    #             disease, plant, symptoms, causes, remedies = item
+    #             prob = 0
+
+    #         st.success(f"Prediction {idx+1}: **{disease}** ({prob:.2f}%)")
+    #         st.markdown("### 🧠 Disease Info (English)")
+    #         st.write(f"**Plant Affected:** {plant}")
+    #         st.write(f"**Symptoms:** {symptoms}")
+    #         st.write(f"**Causes:** {causes}")
+    #         st.write(f"**Remedies:** {remedies}")
 
 
         # Translation choice appears here

@@ -13,7 +13,7 @@ def about_page():
                 ### Dataset Structure
                 1. **Training Set** : 70,295 images
                 2. **Validation Set** : 17,572 images
-                3. **Test Set** : 33 Images (used for real-time prediction)
+                3. **Test Set** : 70 Images (used for real-time prediction)
 
                 This dataset serves as the foundation for training and evaluating our plant disease recognition model, enabling robust classification and detection across multiple plant types.
     """)
