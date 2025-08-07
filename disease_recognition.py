@@ -11,6 +11,24 @@ from io import BytesIO
 import os
 from PIL import Image
 
+from gtts import gTTS
+import streamlit as st
+import os
+import uuid
+
+import base64
+
+def generate_audio(text, lang_code):
+    tts = gTTS(text=text, lang=lang_code)
+    filename = f"audio_{uuid.uuid4().hex}.mp3"
+    tts.save(filename)
+    return filename
+
+def play_audio(file_path):
+    with open(file_path, "rb") as audio_file:
+        audio_bytes = audio_file.read()
+        st.audio(audio_bytes, format="audio/mp3")
+
 # Load custom CSS
 # with open("styles.css") as f:
 #     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -242,10 +260,25 @@ def disease_recognition():
 
             for disease, plant, symptoms, causes, remedies, _ in st.session_state.details_list:
                 st.markdown(f"### 🌐 {disease} ({selected_lang})")
-                st.write(f"**{translate_text('Plant Affected :', lang_code)}** {translate_text(plant, lang_code)}")
-                st.write(f"**{translate_text('Symptoms :', lang_code)}** {translate_text(symptoms, lang_code)}")
-                st.write(f"**{translate_text('Causes :', lang_code)}** {translate_text(causes, lang_code)}")
-                st.write(f"**{translate_text('Remedies :', lang_code)}** {translate_text(remedies, lang_code)}")
+
+                # Prepare translated sections
+                plant_text = f"{translate_text('Plant Affected :', lang_code)} {translate_text(plant, lang_code)}"
+                symptoms_text = f"{translate_text('Symptoms :', lang_code)} {translate_text(symptoms, lang_code)}"
+                causes_text = f"{translate_text('Causes :', lang_code)} {translate_text(causes, lang_code)}"
+                remedies_text = f"{translate_text('Remedies :', lang_code)} {translate_text(remedies, lang_code)}"
+
+                # Display translations
+                st.write(f"**{plant_text}**")
+                st.write(f"**{symptoms_text}**")
+                st.write(f"**{causes_text}**")
+                st.write(f"**{remedies_text}**")
+
+                # Audio content
+                full_text = f"{plant_text}. {symptoms_text}. {causes_text}. {remedies_text}"
+                if st.button(f"🔊 Listen ({disease})", key=f"audio_{disease}"):
+                    audio_path = generate_audio(full_text, lang_code)
+                    play_audio(audio_path)
+                    os.remove(audio_path)
 
         # Compare section at the end
         if st.button("Compare Healthy vs Diseased"):
