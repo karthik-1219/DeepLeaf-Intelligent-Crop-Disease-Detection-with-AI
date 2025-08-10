@@ -8,7 +8,7 @@ def home_page():
 
     st.header("DeepLeaf : Intelligent Crop Disease Detection")
     image_path = os.path.join(os.path.dirname(__file__), "home_page.jpeg")
-    st.image(image_path, use_container_width=True)
+    st.image(image_path, use_column_width=True)
 
     
 
