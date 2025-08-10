@@ -91,7 +91,7 @@ def is_valid_model_file(path):
 def load_model():
     if not is_valid_model_file(MODEL_PATH):
         with st.spinner("Downloading model, please wait..."):
-            gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+            gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)  # <-- add fuzzy=True
     
     st.write(f"Model file size: {os.path.getsize(MODEL_PATH) / (1024*1024):.2f} MB")
 
