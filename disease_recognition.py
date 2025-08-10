@@ -19,8 +19,7 @@ import uuid
 import base64
 import gdown
 
-MODEL_FILE_ID = "1T71U3f3mwh_jQCrgvD445WfsatQ4vr_S"
-MODEL_URL = f"https://drive.google.com/uc?id={MODEL_FILE_ID}"
+
 MODEL_PATH = "trained_plant_disease_model.keras"
 
 
@@ -84,28 +83,15 @@ def get_disease_info(disease_name):
         return f"Error retrieving info: {e}"
 
 # Load the model only once for speed
-def is_valid_model_file(path):
-    return os.path.exists(path) and os.path.getsize(path) > 10 * 1024 * 1024  # 10 MB min
+
 
 @st.cache_resource
 def load_model():
-    if not is_valid_model_file(MODEL_PATH):
-        with st.spinner("Downloading model, please wait..."):
-            gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
-    
-    size_mb = os.path.getsize(MODEL_PATH) / (1024*1024)
-    st.write(f"Model file size: {size_mb:.2f} MB")
-
-    if not is_valid_model_file(MODEL_PATH):
-        st.error("Downloaded model file is invalid or corrupted.")
-        return None
-
     try:
         model = tf.keras.models.load_model(MODEL_PATH)
     except Exception as e:
         st.error(f"Error loading model: {e}")
         return None
-    
     return model
 
 
