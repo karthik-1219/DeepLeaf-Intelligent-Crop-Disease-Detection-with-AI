@@ -142,7 +142,7 @@ def disease_recognition():
                 st.stop()
 
         # Show the image for both upload and camera
-        st.image(test_image, use_container_width=True)
+        st.image(test_image, use_column_width=True)
 
     if st.button("Predict"):
         if test_image is None:
