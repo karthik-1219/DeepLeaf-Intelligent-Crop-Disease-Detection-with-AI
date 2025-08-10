@@ -1,12 +1,17 @@
 import streamlit as st
+import os
+
 
 def home_page():
     # with open("styles.css") as f:
     #     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     st.header("DeepLeaf : Intelligent Crop Disease Detection")
-    image_path = "home_page.jpeg"
-    st.image(image_path,use_container_width=True)
+    image_path = os.path.join(os.path.dirname(__file__), "home_page.jpeg")
+    st.image(image_path, use_container_width=True)
+
+    
+
     st.markdown("""
     ### 🌿 Plant Disease Recognition System
     
