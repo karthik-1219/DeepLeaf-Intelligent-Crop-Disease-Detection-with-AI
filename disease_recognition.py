@@ -22,6 +22,8 @@ import gdown
 MODEL_FILE_ID = "1T71U3f3mwh_jQCrgvD445WfsatQ4vr_S"
 MODEL_URL = f"https://drive.google.com/uc?id={MODEL_FILE_ID}"
 MODEL_PATH = "trained_plant_disease_model.keras"
+
+
 HISTORY_FILE = "history.csv"
 TRAIN_DIR = r"C:\Users\karthik\OneDrive\Desktop\3-1 Project\Deep Leaf Project\train"
 
@@ -83,21 +85,22 @@ def get_disease_info(disease_name):
 
 # Load the model only once for speed
 def is_valid_model_file(path):
-    if not os.path.exists(path):
-        return False
-    if os.path.getsize(path) < 1e6:  # at least 1MB (adjust if needed)
-        return False
-    with open(path, "rb") as f:
-        header = f.read(4)
-    # Check if file starts with HDF5 signature
-    return header == b'\x89HDF'
+    return os.path.exists(path) and os.path.getsize(path) > 10 * 1024 * 1024  # 10 MB min
 
 @st.cache_resource
 def load_model():
-    if not os.path.exists(MODEL_PATH) or not is_valid_model_file(MODEL_PATH):
-        with st.spinner("Downloading the model, please wait..."):
+    if not is_valid_model_file(MODEL_PATH):
+        with st.spinner("Downloading model, please wait..."):
             gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
-    model = tf.keras.models.load_model(MODEL_PATH)
+    
+    st.write(f"Model file size: {os.path.getsize(MODEL_PATH) / (1024*1024):.2f} MB")
+
+    try:
+        model = tf.keras.models.load_model(MODEL_PATH)
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
+    
     return model
 
 
