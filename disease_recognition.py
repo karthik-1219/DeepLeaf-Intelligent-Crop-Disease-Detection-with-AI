@@ -91,9 +91,14 @@ def is_valid_model_file(path):
 def load_model():
     if not is_valid_model_file(MODEL_PATH):
         with st.spinner("Downloading model, please wait..."):
-            gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)  # <-- add fuzzy=True
+            gdown.download(MODEL_URL, MODEL_PATH, quiet=False, fuzzy=True)
     
-    st.write(f"Model file size: {os.path.getsize(MODEL_PATH) / (1024*1024):.2f} MB")
+    size_mb = os.path.getsize(MODEL_PATH) / (1024*1024)
+    st.write(f"Model file size: {size_mb:.2f} MB")
+
+    if not is_valid_model_file(MODEL_PATH):
+        st.error("Downloaded model file is invalid or corrupted.")
+        return None
 
     try:
         model = tf.keras.models.load_model(MODEL_PATH)
