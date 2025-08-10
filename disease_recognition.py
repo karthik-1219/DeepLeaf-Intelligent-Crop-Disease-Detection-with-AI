@@ -17,6 +17,11 @@ import os
 import uuid
 
 import base64
+import gdown
+MODEL_FILE_ID = "1T71U3f3mwh_jQCrgvD445WfsatQ4vr_S"
+MODEL_URL = f"https://drive.google.com/uc?id={MODEL_FILE_ID}"
+MODEL_PATH = "trained_plant_disease_model.keras"
+
 
 def generate_audio(text, lang_code):
     tts = gTTS(text=text, lang=lang_code)
@@ -79,7 +84,13 @@ def get_disease_info(disease_name):
 # Load the model only once for speed
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(MODEL_PATH)
+    if not os.path.exists(MODEL_PATH):
+        st.info("Downloading the model, please wait...")
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+    model = tf.keras.models.load_model(MODEL_PATH)
+    return model
+
+
 
 def model_prediction(test_image):
     """
