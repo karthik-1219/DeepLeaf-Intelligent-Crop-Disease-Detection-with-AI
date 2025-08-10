@@ -106,30 +106,27 @@ def load_model():
 
 
 def model_prediction(test_image):
-    """
-    Run the model on an uploaded image or a camera image and return probabilities.
-    Accepts file-like objects from st.file_uploader or st.camera_input,
-    or a file path.
-    """
-    model = load_model()  # Make sure load_model is defined elsewhere
+    model = load_model()
+    if model is None:
+        st.error("Model could not be loaded. Prediction aborted.")
+        return None
 
-    # Handle file-like objects or file paths
     if hasattr(test_image, "read"):
-        test_image.seek(0)  # rewind the file pointer
-        image = Image.open(test_image).convert("RGB").resize((128, 128))
+        image_data = BytesIO(test_image.read())
     else:
-        image = Image.open(test_image).convert("RGB").resize((128, 128))
+        image_data = test_image
 
-    # Convert image to numpy array and normalize
-    input_arr = np.array(image).astype('float32') / 255.0
+    try:
+        image = tf.keras.preprocessing.image.load_img(image_data, target_size=(128, 128))
+        input_arr = tf.keras.preprocessing.image.img_to_array(image)
+        input_arr = np.expand_dims(input_arr, axis=0)  # batch dimension
 
-    # Add batch dimension: (1, height, width, channels)
-    input_arr = np.expand_dims(input_arr, axis=0)
+        predictions = model.predict(input_arr)[0]
+        return predictions
+    except Exception as e:
+        st.error(f"Prediction error: {e}")
+        return None
 
-    # Predict using the model
-    predictions = model.predict(input_arr)[0]
-
-    return predictions
 
 def translate_text(text, lang_code):
     """Translate text to selected language."""
