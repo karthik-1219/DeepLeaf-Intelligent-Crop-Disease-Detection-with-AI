@@ -1,5 +1,11 @@
 
 import streamlit as st
+from download_data import download_and_extract
+
+with st.spinner("Downloading and preparing datasets..."):
+    download_and_extract()
+
+
 from home_page import home_page
 from about_page import about_page
 from disease_recognition import disease_recognition
